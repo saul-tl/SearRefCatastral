@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, render_template
 import requests
+import pycatastro
 
 app = Flask(__name__)
 
@@ -10,7 +11,7 @@ def home():
 @app.route('/get_data', methods=['GET'])
 def get_data():
     referencia_catastral = request.args.get('ref')
-    url = "http://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC"
+    url = "https://www.catastro.meh.es/ws/esquemas/ovc_consulta_datos_out.xsd"
     params = {
         'RC': referencia_catastral,
         'SRS': 'EPSG:4326'  # Sistema de referencia espacial, por ejemplo.

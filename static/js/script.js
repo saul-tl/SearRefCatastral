@@ -10,7 +10,7 @@ var map = new ol.Map({
         })
     ],
     view: new ol.View({
-        center: ol.proj.transform([2.1734, 41.3851], 'EPSG:4326', 'EPSG:25831'), // Transforma las coordenadas de lon/lat a UTM
+        center: ol.proj.transform([1.564078, 41.216261], 'EPSG:4326', 'EPSG:25831'), // Transforma las coordenadas de lon/lat a UTM
         zoom: 12
     })
 });
