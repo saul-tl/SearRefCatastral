@@ -1,3 +1,7 @@
+// Definición de una nueva proyección si es necesario
+proj4.defs("EPSG:25831", "+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+ol.proj.proj4.register(proj4);
+
 var map = new ol.Map({
     target: 'map',
     layers: [
@@ -6,7 +10,7 @@ var map = new ol.Map({
         })
     ],
     view: new ol.View({
-        center: ol.proj.fromLonLat([2.1734, 41.3851]),
+        center: ol.proj.transform([2.1734, 41.3851], 'EPSG:4326', 'EPSG:25831'), // Transforma las coordenadas de lon/lat a UTM
         zoom: 12
     })
 });
@@ -19,13 +23,12 @@ function fetchData() {
             if (data.error) {
                 document.getElementById('info').innerHTML = 'No se encontraron datos.';
             } else {
+                var coords = ol.proj.transform([data.coordenadas.lon, data.coordenadas.lat], 'EPSG:4326', 'EPSG:25831');
+                map.getView().setCenter(coords);
+                map.getView().setZoom(17);
                 document.getElementById('info').innerHTML = `Referencia: ${data.referencia} <br>
                     Coordenadas: Latitud ${data.coordenadas.lat}, Longitud ${data.coordenadas.lon} <br>
                     Superficie: ${data.superficie} m²`;
-                // Actualizar mapa según los datos
-                var coords = ol.proj.fromLonLat([data.coordenadas.lon, data.coordenadas.lat]);
-                map.getView().setCenter(coords);
-                map.getView().setZoom(17);
             }
         })
         .catch(error => {
