@@ -23,12 +23,16 @@ function fetchData() {
             if (data.error) {
                 document.getElementById('info').innerHTML = 'No se encontraron datos.';
             } else {
-                var coords = ol.proj.transform([data.coordenadas.lon, data.coordenadas.lat], 'EPSG:4326', 'EPSG:25831');
-                map.getView().setCenter(coords);
-                map.getView().setZoom(17);
-                document.getElementById('info').innerHTML = `Referencia: ${data.referencia} <br>
-                    Coordenadas: Latitud ${data.coordenadas.lat}, Longitud ${data.coordenadas.lon} <br>
-                    Superficie: ${data.superficie} m²`;
+                if (data.coordenadas && data.coordenadas.lon && data.coordenadas.lat) {
+                    var coords = ol.proj.transform([parseFloat(data.coordenadas.lon), parseFloat(data.coordenadas.lat)], 'EPSG:4326', 'EPSG:25831');
+                    map.getView().setCenter(coords);
+                    map.getView().setZoom(17);
+                    document.getElementById('info').innerHTML = `Referencia: ${data.referencia} <br>
+                        Coordenadas: Latitud ${data.coordenadas.lat}, Longitud ${data.coordenadas.lon} <br>
+                        Superficie: ${data.superficie} m²`;
+                } else {
+                    document.getElementById('info').innerHTML = 'Los datos recibidos no incluyen coordenadas válidas.';
+                }
             }
         })
         .catch(error => {
