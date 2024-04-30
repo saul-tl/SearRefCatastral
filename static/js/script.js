@@ -1,4 +1,3 @@
-// Definición de una nueva proyección si es necesario
 proj4.defs("EPSG:25831", "+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
 ol.proj.proj4.register(proj4);
 
@@ -10,7 +9,7 @@ var map = new ol.Map({
         })
     ],
     view: new ol.View({
-        center: ol.proj.transform([1.564078, 41.216261], 'EPSG:4326', 'EPSG:25831'), // Transforma las coordenadas de lon/lat a UTM
+        center: ol.proj.transform([1.564078, 41.216261], 'EPSG:4326', 'EPSG:25831'),
         zoom: 12
     })
 });
@@ -20,19 +19,16 @@ function fetchData() {
     fetch(`/get_data?ref=${ref}`)
         .then(response => response.json())
         .then(data => {
+            var infoDiv = document.getElementById('info');
             if (data.error) {
-                document.getElementById('info').innerHTML = 'No se encontraron datos.';
+                infoDiv.innerHTML = 'No se encontraron datos.';
             } else {
-                if (data.coordenadas && data.coordenadas.lon && data.coordenadas.lat) {
-                    var coords = ol.proj.transform([parseFloat(data.coordenadas.lon), parseFloat(data.coordenadas.lat)], 'EPSG:4326', 'EPSG:25831');
-                    map.getView().setCenter(coords);
-                    map.getView().setZoom(17);
-                    document.getElementById('info').innerHTML = `Referencia: ${data.referencia} <br>
-                        Coordenadas: Latitud ${data.coordenadas.lat}, Longitud ${data.coordenadas.lon} <br>
-                        Superficie: ${data.superficie} m²`;
-                } else {
-                    document.getElementById('info').innerHTML = 'Los datos recibidos no incluyen coordenadas válidas.';
-                }
+                var coords = [parseFloat(data.coord_x), parseFloat(data.coord_y)];
+                var coordsLonLat = ol.proj.transform(coords, 'EPSG:25831', 'EPSG:4326');
+                map.getView().setCenter(coords);
+                map.getView().setZoom(17);
+                infoDiv.innerHTML = `Referencia: ${ref} <br>
+                    Coordenadas: Latitud ${coordsLonLat[1].toFixed(5)}, Longitud ${coordsLonLat[0].toFixed(5)} <br>`;
             }
         })
         .catch(error => {
@@ -40,3 +36,9 @@ function fetchData() {
             document.getElementById('info').innerHTML = 'Error en la solicitud.';
         });
 }
+
+// Añadir esto si el botón está fuera del formulario o para prevenir recarga de página
+document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    fetchData();
+});
