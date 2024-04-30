@@ -13,21 +13,30 @@ def home():
 @app.route('/get_data', methods=['GET'])
 def get_data():
     referencia_catastral = request.args.get('ref')
-    provincia = "TARRAGONA"  # Asegúrate de usar valores válidos aquí
-    municipio = "BELLVEI"  # Asegúrate de usar valores válidos aquí
+    provincia = "TARRAGONA"
+    municipio = "BELLVEI"
     try:
         print(f"Solicitando datos para RC: {referencia_catastral}")
         result = PyCatastro.Consulta_DNPRC(provincia=provincia, municipio=municipio, rc=referencia_catastral)
         print(f"Respuesta recibida: {result}")
-        if 'Localizacion' in result:
-            coord_x = result['Localizacion']['Coordenada_X']
-            coord_y = result['Localizacion']['Coordenada_Y']
+        
+        # Asegúrate de que estás extrayendo los campos correctos según la estructura de la respuesta
+        if 'consulta_dnp' in result and 'bico' in result['consulta_dnp']:
+            bi = result['consulta_dnp']['bico']['bi']
+            direccion = bi['ldt']
+            uso = bi['debi']['luso']
+            superficie = bi['debi']['sfc']
+            año = bi['debi']['ant']
+            
             data = {
-                "coord_x": coord_x,
-                "coord_y": coord_y
+                "direccion": direccion,
+                "uso": uso,
+                "superficie": superficie,
+                "año_construccion": año
             }
         else:
             data = {"error": "No se encontraron datos para la referencia proporcionada."}
+            
         return jsonify(data)
     except Exception as e:
         print(f"Error: {e}")

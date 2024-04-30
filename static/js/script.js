@@ -23,12 +23,18 @@ function fetchData() {
             if (data.error) {
                 infoDiv.innerHTML = 'No se encontraron datos.';
             } else {
-                var coords = [parseFloat(data.coord_x), parseFloat(data.coord_y)];
-                var coordsLonLat = ol.proj.transform(coords, 'EPSG:25831', 'EPSG:4326');
+                // Asumiendo que la dirección puede contener la latitud y longitud o que la API ya los envía de alguna forma
+                infoDiv.innerHTML = `Referencia: ${ref} <br>
+                    Dirección: ${data.direccion} <br>
+                    Uso: ${data.uso} <br>
+                    Superficie: ${data.superficie} m² <br>
+                    Año de Construcción: ${data.año_construccion}`;
+                
+                // Actualizar el mapa si se incluyen coordenadas (este código depende de si tienes esas coordenadas)
+                // Ejemplo para actualizar el mapa, reemplazar con tus propias coordenadas si disponibles
+                var coords = ol.proj.transform([parseFloat(data.coord_x), parseFloat(data.coord_y)], 'EPSG:25831', 'EPSG:4326');
                 map.getView().setCenter(coords);
                 map.getView().setZoom(17);
-                infoDiv.innerHTML = `Referencia: ${ref} <br>
-                    Coordenadas: Latitud ${coordsLonLat[1].toFixed(5)}, Longitud ${coordsLonLat[0].toFixed(5)} <br>`;
             }
         })
         .catch(error => {
@@ -36,6 +42,7 @@ function fetchData() {
             document.getElementById('info').innerHTML = 'Error en la solicitud.';
         });
 }
+
 
 // Añadir esto si el botón está fuera del formulario o para prevenir recarga de página
 document.querySelector('form').addEventListener('submit', function(event) {
