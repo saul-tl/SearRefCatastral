@@ -10,14 +10,19 @@ def home():
 @app.route('/get_data', methods=['GET'])
 def get_data():
     referencia_catastral = request.args.get('ref')
-    url = "https://api.catastro.com/detalles"  # Asumiendo una URL ficticia
-    params = {'ref': referencia_catastral}
-    respuesta = requests.get(url, params=params)
+    url = "http://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC"
+    params = {
+        'RC': referencia_catastral,
+        'SRS': 'EPSG:4326'  # Sistema de referencia espacial, por ejemplo.
+    }
+    headers = {
+        'Content-Type': 'application/xml'  # Si es un servicio SOAP.
+    }
+    respuesta = requests.get(url, params=params, headers=headers)
     if respuesta.status_code == 200:
-        datos = respuesta.json()
-        return jsonify(datos)
+        return jsonify(respuesta.text)  # Devuelve la respuesta como JSON
     else:
-        return jsonify({"error": "No se encontraron datos"}), 404
+        return jsonify({"error": "No se encontraron datos"}), respuesta.status_code
 
 if __name__ == '__main__':
     app.run(debug=True)
