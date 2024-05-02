@@ -13,14 +13,14 @@ def home():
 @app.route('/get_data', methods=['GET'])
 def get_data():
     referencia_catastral = request.args.get('ref')
-    provincia = "TARRAGONA"
-    municipio = "BELLVEI"
+    provincia = request.args.get('provincia')
+    municipio = request.args.get('municipio')
     try:
-        print(f"Solicitando datos para RC: {referencia_catastral}")
+        print(f"Solicitando datos para RC: {referencia_catastral}, Provincia: {provincia}, Municipio: {municipio}")
         result = PyCatastro.Consulta_DNPRC(provincia=provincia, municipio=municipio, rc=referencia_catastral)
         print(f"Respuesta recibida: {result}")
         
-        # Asegúrate de que estás extrayendo los campos correctos según la estructura de la respuesta
+        # Procesamiento de la respuesta similar a antes
         if 'consulta_dnp' in result and 'bico' in result['consulta_dnp']:
             bi = result['consulta_dnp']['bico']['bi']
             direccion = bi['ldt']

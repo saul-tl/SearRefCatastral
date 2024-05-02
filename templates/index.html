@@ -16,8 +16,10 @@
     </style>
 </head>
 <body>
-    <form>
+    <form onsubmit="fetchData(); return false;">
         <input type="text" id="refInput" placeholder="Número de referencia catastral" required>
+        <input type="text" id="provinciaInput" placeholder="Provincia" required>
+        <input type="text" id="municipioInput" placeholder="Municipio" required>
         <button type="submit">Buscar</button>
     </form>
     <div id="map"></div>

@@ -30,15 +30,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function fetchData() {
         var ref = document.getElementById('refInput').value;
+        var provincia = document.getElementById('provinciaInput').value;
+        var municipio = document.getElementById('municipioInput').value;
         var info = document.getElementById('info');
-        fetch(`/get_data?ref=${ref}`)
+        fetch(`/get_data?ref=${ref}&provincia=${provincia}&municipio=${municipio}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
                     info.innerHTML = 'No se encontraron datos.';
                     console.log("Error:", data.error);
                 } else {
-                    // Actualizar la información del activo en el HTML
                     info.innerHTML = `Referencia: ${ref} <br>
                         Dirección: ${data.direccion} <br>
                         Uso: ${data.uso} <br>
