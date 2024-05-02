@@ -62,8 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/\bPZ\b/g, 'Plaza')
             .replace(/\bSTA\b/g, 'Santa')
             .replace(/\bAV\b/g, 'Avenida')
-            .replace(/\bCL\b/g, 'Calle')
-            .replace(/\bC\/\b/g, 'Calle')
+            .replace(/\bCL\b/g, 'C')            
             .replace(/\bPSEO\b/g, 'Paseo')
             .replace(/\bCTRA\b/g, 'Carretera')
             .replace(/\bPLZ\b/g, 'Plaza')
@@ -71,8 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/\bALMD\b/g, 'Alameda')
             .replace(/\bBLVR\b/g, 'Bulevar')
             .replace(/\bGTA\b/g, 'Glorieta')
-            .replace(/\bGR\b/g, 'Gran')
-            .replace(/\d{5}/g, '')  // Eliminar códigos postales
+            .replace(/\bGR\b/g, 'Gran')            
             .replace(/\([^()]*\)/g, '')  // Eliminar texto entre paréntesis
             .replace(/Bl:\d+\s*/gi, '')
             .replace(/Es:[^ ]+\s*/gi, '')
