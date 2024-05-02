@@ -40,34 +40,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     info.innerHTML = 'No se encontraron datos.';
                     console.log("Error:", data.error);
                 } else {
+                    let cleanedAddress = cleanAddress(data.direccion, provincia, municipio);
+                    console.log("Dirección enviada para geocodificación:", cleanedAddress);
+                    geocodeAddress(cleanedAddress);
                     info.innerHTML = `Referencia: ${ref} <br>
-                        Dirección: ${data.direccion} <br>
+                        Dirección: ${cleanedAddress} <br>
                         Uso: ${data.uso} <br>
                         Superficie: ${data.superficie} m² <br>
                         Año de Construcción: ${data.año_construcción} <br>`;
-
-                    let cleanedAddress = cleanAddress(data.direccion);
-                    console.log("Dirección enviada para geocodificación:", cleanedAddress);
-                    geocodeAddress(cleanedAddress);
                 }
             })
             .catch(error => {
                 console.error('Fetch error:', error);
                 info.innerHTML = 'Error en la solicitud.';
             });
-    }
+    }        
 
-    function cleanAddress(address) {
-        // Eliminar códigos postales y cualquier paréntesis
+    function cleanAddress(address, provincia, municipio) {
+        // Normalizar abreviaturas comunes y eliminar términos específicos
         let cleanedAddress = address
-            .replace(/\d{5}/g, '') // Eliminar código postal
-            .replace(/\([^()]*\)/g, '') // Eliminar cualquier texto entre paréntesis
-            .replace(/[^\w\s,]/g, '') // Eliminar caracteres especiales excepto comas
-            .replace(/\s+/g, ' ') // Eliminar espacios extra
-            .trim();
-    
-        // Normalizar abreviaturas comunes
-        cleanedAddress = cleanedAddress
             .replace(/\bPZ\b/g, 'Plaza')
             .replace(/\bSTA\b/g, 'Santa')
             .replace(/\bAV\b/g, 'Avenida')
@@ -80,26 +71,42 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/\bALMD\b/g, 'Alameda')
             .replace(/\bBLVR\b/g, 'Bulevar')
             .replace(/\bGTA\b/g, 'Glorieta')
-            .replace(/\bGR\b/g, 'Gran');
+            .replace(/\bGR\b/g, 'Gran')
+            .replace(/\d{5}/g, '')  // Eliminar códigos postales
+            .replace(/\([^()]*\)/g, '')  // Eliminar texto entre paréntesis
+            .replace(/Bl:\d+\s*/gi, '')
+            .replace(/Es:[^ ]+\s*/gi, '')
+            .replace(/Pl:\d+\s*/gi, '')
+            .replace(/Pt:\d+\s*/gi, '')
+            .replace(/P-\d+\s*/gi, '')
+            .replace(/[^\w\s,]/g, '')  // Eliminar caracteres especiales excepto comas
+            .replace(/\s+/g, ' ')  // Reducir múltiples espacios a uno solo
+            .trim();
     
-        // Eliminar patrones específicos de números y abreviaturas de dirección
-        cleanedAddress = cleanedAddress
-            .replace(/\b\d+\s+EsD\s+\b/g, '') // Eliminar patrones como "1 EsD "
-            .replace(/\b\d+\s+\w+\b/g, '') // Eliminar cualquier número seguido de palabras como "1 BELLVEI"
-            .replace(/\bPl\d+\b/g, '') // Eliminar "Pl" seguido de números, como "Pl03"
-            .replace(/\bPt\d+\b/g, '') // Eliminar "Pt" seguido de números, como "Pt52"
-            .replace(/\bBELLVEI\b/g, ''); // Eliminar palabras específicas como "BELLVEI"
+        // Eliminar duplicados y detalles no deseados
+        let parts = cleanedAddress.split(' ');
+        let seen = new Set();
+        let uniqueParts = [];
     
-        // Asegurar que la dirección incluya la ciudad y el país si no están presentes
-        if (!cleanedAddress.includes("TARRAGONA")) {
-            cleanedAddress += ", TARRAGONA";
+        parts.forEach(part => {
+            let normalizedPart = part.toLowerCase();
+            if (!seen.has(normalizedPart) && part !== provincia && normalizedPart !== municipio.toLowerCase()) {
+                seen.add(normalizedPart);
+                uniqueParts.push(part);
+            }
+        });
+    
+        cleanedAddress = uniqueParts.join(' ');
+    
+        // Añadir provincia y país si no están presentes
+        if (!cleanedAddress.includes(provincia)) {
+            cleanedAddress += ", " + provincia;
         }
-        if (!cleanedAddress.endsWith("España")) {
-            cleanedAddress += ", España";
-        }
+        cleanedAddress += ", España";
     
-        return cleanedAddress.replace(/\s+/g, ' ').trim();
-    }        
+        return cleanedAddress;
+    }    
+                        
         
     function geocodeAddress(cleanedAddress) {
         fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(cleanedAddress)}`)
