@@ -21,40 +21,82 @@ document.addEventListener('DOMContentLoaded', function() {
     var vectorLayer = new ol.layer.Vector({ source: vectorSource }); // Capa para el marcador
     map.addLayer(vectorLayer); // Añade la capa al mapa
 
-    // Manejo del evento de envío del formulario
-    var form = document.querySelector('form');
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        fetchData();
-    });
+    // Función para agregar campos de entrada de referencias catastrales
+    function addInputField() {
+        var inputForm = document.getElementById("inputForm");
+        var newInputGroup = document.createElement("div");
+        newInputGroup.className = "inputGroup";
 
+        var newRefInput = document.createElement("input");
+        newRefInput.type = "text";
+        newRefInput.className = "refInput";
+        newRefInput.placeholder = "Número de referencia catastral";
+        newRefInput.required = true;
+        newInputGroup.appendChild(newRefInput);
+
+        var newProvinciaInput = document.createElement("input");
+        newProvinciaInput.type = "text";
+        newProvinciaInput.className = "provinciaInput";
+        newProvinciaInput.placeholder = "Provincia";
+        newProvinciaInput.required = true;
+        newInputGroup.appendChild(newProvinciaInput);
+
+        var newMunicipioInput = document.createElement("input");
+        newMunicipioInput.type = "text";
+        newMunicipioInput.className = "municipioInput";
+        newMunicipioInput.placeholder = "Municipio";
+        newMunicipioInput.required = true;
+        newInputGroup.appendChild(newMunicipioInput);
+
+        inputForm.appendChild(newInputGroup);
+    }
+
+    // Función para remover el último campo de entrada
+    function removeInputField() {
+        var inputGroups = document.getElementsByClassName("inputGroup");
+        if (inputGroups.length > 1) { // Asegura que siempre haya al menos un conjunto de campos
+            inputGroups[inputGroups.length - 1].remove();
+        }
+    }
+
+    document.getElementById("addButton").addEventListener('click', addInputField);
+    document.getElementById("removeButton").addEventListener('click', removeInputField);
+    document.getElementById("searchButton").addEventListener('click', fetchData);
+
+    // Función para procesar la búsqueda
     function fetchData() {
-        var ref = document.getElementById('refInput').value;
-        var provincia = document.getElementById('provinciaInput').value;
-        var municipio = document.getElementById('municipioInput').value;
-        var info = document.getElementById('info');
-        fetch(`/get_data?ref=${ref}&provincia=${provincia}&municipio=${municipio}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    info.innerHTML = 'No se encontraron datos.';
-                    console.log("Error:", data.error);
-                } else {
-                    let cleanedAddress = cleanAddress(data.direccion, provincia, municipio);
-                    console.log("Dirección enviada para geocodificación:", cleanedAddress);
-                    geocodeAddress(cleanedAddress);
-                    info.innerHTML = `Referencia: ${ref} <br>
-                        Dirección: ${cleanedAddress} <br>
-                        Uso: ${data.uso} <br>
-                        Superficie: ${data.superficie} m² <br>
-                        Año de Construcción: ${data.año_construcción} <br>`;
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                info.innerHTML = 'Error en la solicitud.';
-            });
-    }        
+        var inputs = document.querySelectorAll(".inputGroup");
+        var info = document.getElementById("info");
+        info.innerHTML = ''; // Limpiar información anterior
+
+        inputs.forEach(inputGroup => {
+            var ref = inputGroup.querySelector(".refInput").value;
+            var provincia = inputGroup.querySelector(".provinciaInput").value;
+            var municipio = inputGroup.querySelector(".municipioInput").value;
+
+            fetch(`/get_data?ref=${ref}&provincia=${provincia}&municipio=${municipio}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        info.innerHTML += `<p>Error para la referencia ${ref}: ${data.error}</p>`;
+                    } else {
+                        let cleanedAddress = cleanAddress(data.direccion, provincia, municipio);
+                        info.innerHTML += `<div>
+                            <strong>Referencia:</strong> ${ref} <br>
+                            <strong>Dirección:</strong> ${cleanedAddress} <br>
+                            <strong>Uso:</strong> ${data.uso} <br>
+                            <strong>Superficie:</strong> ${data.superficie} m² <br>
+                            <strong>Año de Construcción:</strong> ${data.año_construcción} <br>
+                            </div><br>`;
+                        geocodeAddress(cleanedAddress);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    info.innerHTML += `<p>Error en la solicitud para la referencia ${ref}.</p>`;
+                });
+        });
+    }       
 
     function cleanAddress(address, provincia, municipio) {
         // Normalizar abreviaturas comunes y eliminar términos específicos
@@ -146,3 +188,5 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 });
+
+//https://nominatim.openstreetmap.org/ui/search.html
