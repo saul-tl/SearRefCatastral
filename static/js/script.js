@@ -68,36 +68,49 @@ document.addEventListener('DOMContentLoaded', function() {
         var inputs = document.querySelectorAll(".inputGroup");
         var info = document.getElementById("info");
         info.innerHTML = ''; // Limpiar información anterior
-
+    
         inputs.forEach(inputGroup => {
             var ref = inputGroup.querySelector(".refInput").value;
             var provincia = inputGroup.querySelector(".provinciaInput").value;
             var municipio = inputGroup.querySelector(".municipioInput").value;
-
+    
             fetch(`/get_data?ref=${ref}&provincia=${provincia}&municipio=${municipio}`)
                 .then(response => response.json())
                 .then(data => {
+                    var activoContainer = document.createElement('div'); // Contenedor para cada activo
+                    activoContainer.className = 'activoContainer'; // Clase para aplicar estilos
+    
                     if (data.error) {
-                        info.innerHTML += `<p>Error para la referencia ${ref}: ${data.error}</p>`;
+                        var errorElement = document.createElement('p');
+                        errorElement.innerHTML = `Error para la referencia ${ref}: ${data.error}`;
+                        activoContainer.appendChild(errorElement);
                     } else {
                         let cleanedAddress = cleanAddress(data.direccion, provincia, municipio);
-                        info.innerHTML += `<div>
-                            <strong>Referencia:</strong> ${ref} <br>
+                        var activoInfo = `<strong>Referencia:</strong> ${ref} <br>
                             <strong>Dirección:</strong> ${cleanedAddress} <br>
                             <strong>Uso:</strong> ${data.uso} <br>
                             <strong>Superficie:</strong> ${data.superficie} m² <br>
-                            <strong>Año de Construcción:</strong> ${data.año_construcción} <br>
-                            </div><br>`;
-                        geocodeAddress(cleanedAddress);
+                            <strong>Año de Construcción:</strong> ${data.año_construcción} <br>`;
+                        var infoElement = document.createElement('div');
+                        infoElement.innerHTML = activoInfo;
+                        activoContainer.appendChild(infoElement);
+    
+                        geocodeAddress(cleanedAddress, activoContainer);
                     }
+    
+                    info.appendChild(activoContainer);
+                    var hr = document.createElement('hr'); // Línea horizontal para separar activos
+                    info.appendChild(hr); // Añadir la línea al contenedor principal
                 })
                 .catch(error => {
                     console.error('Fetch error:', error);
-                    info.innerHTML += `<p>Error en la solicitud para la referencia ${ref}.</p>`;
+                    var errorElement = document.createElement('p');
+                    errorElement.innerHTML = `Error en la solicitud para la referencia ${ref}.`;
+                    activoContainer.appendChild(errorElement);
+                    info.appendChild(activoContainer);
                 });
         });
-    }       
-
+    }        
     function cleanAddress(address, provincia, municipio) {
         // Normalizar abreviaturas comunes y eliminar términos específicos
         let cleanedAddress = address
@@ -148,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }    
                         
         
-    function geocodeAddress(cleanedAddress) {
+    function geocodeAddress(cleanedAddress, activoContainer) {
         fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(cleanedAddress)}`)
             .then(response => response.json())
             .then(data => {
@@ -156,16 +169,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     var coords = data[0];
                     var lonLat = [parseFloat(coords.lon), parseFloat(coords.lat)];
                     var transformedCoords = ol.proj.fromLonLat(lonLat);
-
+    
                     map.getView().setCenter(transformedCoords);
                     map.getView().setZoom(17);
-
+    
                     vectorSource.clear(); // Remover marcadores anteriores
-
+    
                     var newMarker = new ol.Feature({
                         geometry: new ol.geom.Point(transformedCoords)
                     });
-
+    
                     newMarker.setStyle(new ol.style.Style({
                         image: new ol.style.Icon({
                             anchor: [0.5, 1], // Centro inferior del icono
@@ -173,18 +186,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png'
                         })
                     }));
-
+    
                     vectorSource.addFeature(newMarker);
-                    info.innerHTML += `<br>Coordenadas Geocodificadas: Latitud ${coords.lat}, Longitud ${coords.lon}`;
-                    console.log("Coordenadas obtenidas y mapa actualizado: Latitud " + coords.lat + ", Longitud " + coords.lon);
+                    var coordsElement = document.createElement('p');
+                    coordsElement.innerHTML = `Coordenadas Geocodificadas: Latitud ${coords.lat}, Longitud ${coords.lon}`;
+                    activoContainer.appendChild(coordsElement); // Añadir las coordenadas dentro del contenedor de activo
                 } else {
-                    console.log("No se encontraron coordenadas para la dirección proporcionada:", cleanedAddress);
-                    info.innerHTML += "<br>No se encontraron coordenadas para la dirección proporcionada.";
+                    var errorElement = document.createElement('p');
+                    errorElement.innerHTML = "No se encontraron coordenadas para la dirección proporcionada.";
+                    activoContainer.appendChild(errorElement);
                 }
             })
             .catch(error => {
                 console.error('Geocoding error:', error);
-                info.innerHTML += '<br>Error en la geocodificación.';
+                var errorElement = document.createElement('p');
+                errorElement.innerHTML = 'Error en la geocodificación.';
+                activoContainer.appendChild(errorElement);
             });
     }
 });
