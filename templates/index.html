@@ -20,9 +20,11 @@
         <button id="addButton" type="button">Añadir más</button>
         <button id="removeButton" type="button">Eliminar último</button>
         <button id="searchButton" type="button" onclick="fetchData()">Buscar</button>
+        <button id="downloadButton" type="button" onclick="descargarExcel()">Descargar Excel</button>
     </div>
     <div id="map"></div>
     <div id="info"></div>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/download.js') }}"></script>
 </body>
 </html>

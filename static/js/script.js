@@ -65,6 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para procesar la búsqueda
     function fetchData() {
+        // Limpiar el array de activos antes de realizar una nueva búsqueda
+        activos = [];
+    
         var inputs = document.querySelectorAll(".inputGroup");
         var info = document.getElementById("info");
         info.innerHTML = ''; // Limpiar información anterior
@@ -73,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var ref = inputGroup.querySelector(".refInput").value;
             var provincia = inputGroup.querySelector(".provinciaInput").value;
             var municipio = inputGroup.querySelector(".municipioInput").value;
+            var coords = null; // Coordenadas inicialmente nulas
     
             fetch(`/get_data?ref=${ref}&provincia=${provincia}&municipio=${municipio}`)
                 .then(response => response.json())
@@ -90,12 +94,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             <strong>Dirección:</strong> ${cleanedAddress} <br>
                             <strong>Uso:</strong> ${data.uso} <br>
                             <strong>Superficie:</strong> ${data.superficie} m² <br>
-                            <strong>Año de Construcción:</strong> ${data.año_construcción} <br>`;
+                            <strong>Año de Construcción:</strong> ${data.ano_construcción} <br>`;
                         var infoElement = document.createElement('div');
                         infoElement.innerHTML = activoInfo;
                         activoContainer.appendChild(infoElement);
     
-                        geocodeAddress(cleanedAddress, activoContainer);
+                        // Llamar a la función para procesar el activo con todos los datos necesarios
+                        procesarActivo(ref, cleanedAddress, data.uso, data.superficie, data.ano_construcción, municipio, provincia, coords);
+    
+                        // Llamar a la función para geocodificar la dirección
+                        geocodeAddress(cleanedAddress, activoContainer); // <--- AQUÍ SE LLAMA A LA FUNCIÓN
                     }
     
                     info.appendChild(activoContainer);
@@ -110,7 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     info.appendChild(activoContainer);
                 });
         });
-    }        
+    }
+
     function cleanAddress(address, provincia, municipio) {
         // Normalizar abreviaturas comunes y eliminar términos específicos
         let cleanedAddress = address
@@ -169,7 +178,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     var coords = data[0];
                     var lonLat = [parseFloat(coords.lon), parseFloat(coords.lat)];
                     var transformedCoords = ol.proj.fromLonLat(lonLat);
-    
+
+                    // Ajuste para centrar y mostrar el marcador
                     map.getView().setCenter(transformedCoords);
                     map.getView().setZoom(17);
     
@@ -204,6 +214,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 activoContainer.appendChild(errorElement);
             });
     }
-});
 
-//https://nominatim.openstreetmap.org/ui/search.html
+    function procesarActivo(referencia, direccion, uso, superficie, anoConstruccion, localidad, provincia, coords) {
+        agregarActivo(referencia, direccion, uso, superficie, anoConstruccion, localidad, provincia, coords);
+    }
+    
+    function agregarActivo(referencia, direccion, uso, superficie, anoConstruccion, localidad, provincia, coords) {
+        var activo = {
+            referencia: referencia,
+            direccion: direccion,
+            uso: uso,
+            superficie: superficie,
+            anoConstruccion: anoConstruccion,
+            localidad: localidad,
+            provincia: provincia,
+            coords: coords // Aquí se pasan las coordenadas reales
+        };
+        activos.push(activo);
+    }
+    
+});
